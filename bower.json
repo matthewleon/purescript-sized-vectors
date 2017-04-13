@@ -14,7 +14,7 @@
   ],
   "dependencies": {
     "purescript-prelude": "^3.0.0",
-    "purescript-typelevel": "^3.0.0",
+    "purescript-typelevel": "matthewleon/purescript-typelevel#trich-pos-d0",
     "purescript-foldable-traversable": "^3.0.0",
     "purescript-maybe": "^3.0.0",
     "purescript-arrays": "^4.0.1",
