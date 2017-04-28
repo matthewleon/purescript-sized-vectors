@@ -35,10 +35,14 @@ module Data.Vec
   , sort
   , sortBy
   , reverse
+  , mkIntableE
+  , Intable
+  , getInts
   ) where
 
 import Prelude
 import Data.Array as Array
+import Data.Exists (Exists, mkExists, runExists)
 import Data.Foldable (foldl, foldr, foldMap, class Foldable)
 import Data.Maybe (fromJust)
 import Data.Traversable (traverse, sequence, class Traversable)
@@ -53,6 +57,38 @@ import Partial.Unsafe (unsafePartial)
 
 -- | `Vec s a` is an array with a fixed size `s` defined at the type level.
 newtype Vec s a = Vec (Array a)
+
+{-
+data LtNat n n'
+instance natLtNat :: Nat (LtNat n n') where
+  toInt _ = toInt (undefined :: n')
+
+mkLtNat :: forall n n'. Lt n' n => LtNat n n'
+mkLtNat = LtNat
+-}
+
+data Intable a = Intable a (a -> Int)
+type IntableE = Exists Intable
+mkIntableE :: forall a. Nat a => a -> IntableE
+mkIntableE a = mkExists (Intable a toInt)
+
+getInts :: Array IntableE -> Array Int
+getInts = map (runExists get)
+  where
+  get :: forall a. Intable a -> Int
+  get (Intable a toInt) = toInt a
+
+{-
+ltsv :: forall s. Pos s => Vec s (forall n. Nat n => Lt n s => n)
+--ltsv :: forall s. Pos s => Vec s (forall n. Nat n => Lt n s => LtNat s n)
+ltsv = replicate' undefined
+
+ints :: forall s. Pos s => Vec s Int
+ints = toInt <$> ltsv
+-}
+
+--mkLtNat :: forall n. (forall n'. Lt n' n => n') -> LtNat n
+--mkLtNat = LtNat
 
 -- | An empty vector.
 empty :: forall a. Vec D0 a
@@ -82,6 +118,12 @@ replicate = const replicate'
 
 replicate' :: forall s a. Nat s => a -> Vec s a
 replicate' a = Vec $ Array.replicate (toInt (undefined :: s)) a
+
+{-
+rebuild :: forall s a. Pos s => Vec s a -> Vec s a
+rebuild v = foldr cons empty v
+fromNats :: forall s a. Pos s => (forall s'. Nat s' => Lt s' s => s -> a) -> Vec s a
+-}
 
 -- | Get the length of a vector as an integer.
 length :: forall s a. Nat s => Vec s a -> Int

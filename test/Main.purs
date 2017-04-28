@@ -2,18 +2,18 @@ module Test.Main where
 
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Console (CONSOLE, logShow)
 import Data.Traversable (sequence)
 import Data.Typelevel.Num (D1, D2, D3, D9, d2, d3, d6, toInt)
-import Data.Vec (Vec, concat, drop, drop', empty, length, lengthT, replicate, replicate', slice, slice', tail, take, take', (+>))
-import Prelude (($), Unit, pure, discard)
+import Data.Vec (Vec, concat, drop, drop', empty, length, lengthT, replicate, replicate', slice, slice', tail, take, take', mkIntableE, getInts, (+>))
+import Prelude (($), (*>), Unit, pure, discard)
 import Test.Unit (suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.Console (TESTOUTPUT)
 import Test.Unit.Main (runTest)
 
 main :: forall e. Eff (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR | e) Unit
-main = runTest do
+main = logShow (getInts [mkIntableE d2, mkIntableE d6]) *> runTest do
   suite "vec" do
     let vec1 = replicate d2 1
         vec2 = replicate d3 2
