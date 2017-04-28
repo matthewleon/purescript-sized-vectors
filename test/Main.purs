@@ -3,9 +3,11 @@ module Test.Main where
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Data.Maybe (fromJust)
 import Data.Traversable (sequence)
-import Data.Typelevel.Num (D1, D2, D3, D9, d2, d3, d6, toInt)
-import Data.Vec (Vec, concat, drop, drop', empty, length, lengthT, replicate, replicate', slice, slice', tail, take, take', (+>))
+import Data.Typelevel.Num (D1, D2, D3, D9, d2, d3, d4, d6, toInt)
+import Data.Vec (Vec, concat, drop, drop', empty, length, lengthT, replicate, replicate', fromArray, slice, slice', tail, take, take', (+>))
+import Partial.Unsafe (unsafePartial)
 import Prelude (($), Unit, pure, discard)
 import Test.Unit (suite, test)
 import Test.Unit.Assert (equal)
@@ -18,12 +20,16 @@ main = runTest do
     let vec1 = replicate d2 1
         vec2 = replicate d3 2
         vec3 = (replicate' 3 :: Vec D9 Int)
+        vec4 = unsafePartial $ fromJust $ fromArray d4 [1, 2, 3, 4, 5]
     test "cons length" do
       equal 3 $ toInt $ lengthT $ 1 +> 2 +> 3 +> empty
       equal 3 $ length $ 1 +> 2 +> 3 +> empty
     test "replicate length" do
       equal 2 $ toInt $ lengthT vec1
       equal 9 $ length vec3
+    test "fromArray length" do
+      equal 4 $ toInt $ lengthT vec4
+      equal 4 $ length vec4
     test "concat length" do
       equal 5 $ toInt $ lengthT (concat vec1 vec2)
     test "take length" do
