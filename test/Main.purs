@@ -3,6 +3,7 @@ module Test.Main where
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Data.Distributive (distribute)
 import Data.Maybe (fromJust)
 import Data.Traversable (sequence)
 import Data.Typelevel.Num (D1, D2, D3, D4, D9, d2, d3, d6, toInt)
@@ -58,3 +59,17 @@ main = runTest do
                      , 2 +> 3 +> empty
                      ]
       equal expected $ sequence vecOfArrays
+    test "distributive" do
+      let vecs1 = (1 +> 2 +> empty)
+               +> (3 +> 4 +> empty)
+               +> (5 +> 6 +> empty)
+               +> empty
+
+          vecs2 =  (1 +> 3 +> 5 +> empty)
+                +> (2 +> 4 +> 6 +> empty)
+                +> empty
+
+      equal vecs2 $ distribute vecs1
+      equal vecs1 $ distribute vecs2
+      equal vecs1 $ distribute $ distribute vecs1
+      equal vecs2 $ distribute $ distribute vecs2

@@ -40,6 +40,7 @@ module Data.Vec
 
 import Prelude
 import Data.Array as Array
+import Data.Distributive (class Distributive, collectDefault)
 import Data.Foldable (foldl, foldr, foldMap, class Foldable)
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Traversable (traverse, sequence, class Traversable)
@@ -237,6 +238,14 @@ instance foldableVec :: Nat s => Foldable (Vec s) where
 instance traversableVec :: Nat s => Traversable (Vec s) where
   traverse f (Vec xs) = Vec <$> traverse f xs
   sequence (Vec xs) = Vec <$> sequence xs
+
+instance distributiveVec :: Pos s => Distributive (Vec s) where
+  collect = collectDefault
+  distribute vs =
+    let as = map toArray vs
+        len = toInt (undefined :: s)
+        indexes = Array.range 0 (len - 1)
+    in  Vec $ flap (unsafePartial Array.unsafeIndex <$> as) <$> indexes
 
 instance eqVec :: (Nat s, Eq a) => Eq (Vec s a) where
   eq (Vec v1) (Vec v2) = v1 == v2
