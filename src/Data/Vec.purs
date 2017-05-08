@@ -239,12 +239,12 @@ instance traversableVec :: Nat s => Traversable (Vec s) where
   traverse f (Vec xs) = Vec <$> traverse f xs
   sequence (Vec xs) = Vec <$> sequence xs
 
-instance distributiveVec :: Pos s => Distributive (Vec s) where
+instance distributiveVec :: Nat s => Distributive (Vec s) where
   collect = collectDefault
   distribute vs =
     let as = map toArray vs
         len = toInt (undefined :: s)
-        indexes = Array.range 0 (len - 1)
+        indexes = if len == 0 then [] else Array.range 0 (len - 1)
     in  Vec $ flap (unsafePartial Array.unsafeIndex <$> as) <$> indexes
 
 instance eqVec :: (Nat s, Eq a) => Eq (Vec s a) where
