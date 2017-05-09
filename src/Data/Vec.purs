@@ -121,6 +121,10 @@ index :: forall i s a. Nat i => Lt i s => Vec s a -> i -> a
 index (Vec xs) i = unsafePartial $ Array.unsafeIndex xs $ toInt i
 infixl 8 index as !!
 
+-- | Value-level indexation with runtime bounds check.
+index' :: forall s a. Vec s a -> Int -> Maybe a
+index' (Vec xs) = Array.index xs
+
 -- | Concatenate two vectors together.
 concat :: forall s1 s2 s3 a. Add s1 s2 s3 => Vec s1 a -> Vec s2 a -> Vec s3 a
 concat (Vec xs1) (Vec xs2) = Vec $ Array.concat [xs1, xs2]
