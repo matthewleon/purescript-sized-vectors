@@ -13,6 +13,7 @@ module Data.Vec
   , toArray
   , toUnfoldable
   , index, (!!)
+  , index'
   , concat
   , updateAt
   , modifyAt
