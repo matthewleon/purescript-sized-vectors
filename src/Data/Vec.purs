@@ -44,6 +44,7 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable (foldl, foldr, foldMap, class Foldable)
 import Data.Maybe (Maybe(..), fromJust)
+import Data.ModularArithmetic (Z, runZ)
 import Data.Traversable (traverse, sequence, class Traversable)
 import Data.Tuple (Tuple(Tuple))
 import Data.Unfoldable (class Unfoldable)
@@ -122,6 +123,10 @@ infixl 8 index as !!
 index' :: forall s a. Vec s a -> Int -> Maybe a
 index' (Vec xs) = Array.index xs
 
+-- | Indexation with a modular integer.
+indexZ :: forall s a. Vec s a -> Z s -> a
+indexZ (Vec xs) = unsafePartial $ Array.unsafeIndex xs <<< runZ
+
 -- | Concatenate two vectors together.
 concat :: forall s1 s2 s3 a. Add s1 s2 s3 => Vec s1 a -> Vec s2 a -> Vec s3 a
 concat (Vec xs1) (Vec xs2) = Vec $ Array.concat [xs1, xs2]
@@ -130,19 +135,39 @@ concat (Vec xs1) (Vec xs2) = Vec $ Array.concat [xs1, xs2]
 updateAt :: forall i s a. Nat i => Lt i s => NProxy i -> a -> Vec s a -> Vec s a
 updateAt i v (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.updateAt (toInt i) v xs
 
+-- | Update a vector with a given value inserted at a given index,
+-- | using a modular Int.
+updateAtZ :: forall s a. Z s -> a -> Vec s a -> Vec s a
+updateAtZ i v (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.updateAt (runZ i) v xs
+
 -- | Update a vector at a given index using a function.
 modifyAt :: forall i s a. Nat i => Lt i s => NProxy i -> (a -> a) -> Vec s a -> Vec s a
 modifyAt i f (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.modifyAt (toInt i) f xs
+
+-- | Update a vector at a given index using a function
+-- | using a modular Int.
+modifyAtZ :: forall s a. Z s -> (a -> a) -> Vec s a -> Vec s a
+modifyAtZ i f (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.modifyAt (runZ i) f xs
 
 -- | Insert a value at a given index inside a vector, returning a vector
 -- | that is one element larger.
 insertAt :: forall i s1 s2 a. Nat i => Lt i s1 => Succ s1 s2 => NProxy i -> a -> Vec s1 a -> Vec s2 a
 insertAt i a (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.insertAt (toInt i) a xs
 
+-- | Insert a value at a given index inside a vector, returning a vector
+-- | that is one element larger, using a modular Int.
+insertAtZ :: forall s1 s2 a. Succ s1 s2 => Z s1 -> a -> Vec s1 a -> Vec s2 a
+insertAtZ i a (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.insertAt (runZ i) a xs
+
 -- | Remove an element at a given index inside a vector, returning a vector
 -- | that is one element smaller.
 deleteAt :: forall i s1 s2 a. Nat i => Lt i s1 => Pred s1 s2 => NProxy i -> Vec s1 a -> Vec s2 a
 deleteAt i (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.deleteAt (toInt i) xs
+
+-- | Remove an element at a given index inside a vector, returning a vector
+-- | that is one element smaller, using a modular Int.
+deleteAtZ :: forall s1 s2 a. Pred s1 s2 => Z s1 -> Vec s1 a -> Vec s2 a
+deleteAtZ i (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.deleteAt (runZ i) xs
 
 -- | Get the head of a non-empty vector.
 head :: forall s a. Pos s => Vec s a -> a
