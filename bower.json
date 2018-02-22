@@ -14,11 +14,11 @@
   ],
   "dependencies": {
     "purescript-prelude": "^3.0.0",
-    "purescript-typelevel": "^3.0.0",
     "purescript-foldable-traversable": "^3.0.0",
     "purescript-maybe": "^3.0.0",
     "purescript-arrays": "^4.0.1",
-    "purescript-unfoldable": "^3.0.0"
+    "purescript-unfoldable": "^3.0.0",
+    "purescript-num-kind": "matthewleon/purescript-nat-kind"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",

@@ -39,21 +39,18 @@ module Data.Vec
   ) where
 
 import Prelude
+
 import Data.Array as Array
 import Data.Foldable (foldl, foldr, foldMap, class Foldable)
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Traversable (traverse, sequence, class Traversable)
 import Data.Tuple (Tuple(Tuple))
-import Data.Typelevel.Num (class Min, class Sub, class LtEq, class Pred, class Lt)
-import Data.Typelevel.Num.Ops (class Add, class Succ)
-import Data.Typelevel.Num.Reps (D1, D0)
-import Data.Typelevel.Num.Sets (toInt, class Pos, class Nat)
-import Data.Typelevel.Undefined (undefined)
 import Data.Unfoldable (class Unfoldable)
 import Partial.Unsafe (unsafePartial)
+import Type.Data.Nat (class Add, class Lt, class LtEq, class Min, class Nat, class Pos, class Pred, class Sub, class Succ, D0, D1, NProxy(..), toInt, kind Nat)
 
 -- | `Vec s a` is an array with a fixed size `s` defined at the type level.
-newtype Vec s a = Vec (Array a)
+newtype Vec (s :: Nat) a = Vec (Array a)
 
 -- | An empty vector.
 empty :: forall a. Vec D0 a
@@ -78,25 +75,25 @@ singleton :: forall a. a -> Vec D1 a
 singleton x = x +> empty
 
 -- | Construct a vector of a given length containing the same element repeated.
-replicate :: forall s a. Nat s => s -> a -> Vec s a
+replicate :: forall s a. Nat s => NProxy s -> a -> Vec s a
 replicate = const replicate'
 
 replicate' :: forall s a. Nat s => a -> Vec s a
-replicate' a = Vec $ Array.replicate (toInt (undefined :: s)) a
+replicate' a = Vec $ Array.replicate (toInt (NProxy :: NProxy s)) a
 
 -- | Convert an array to a vector.
 fromArray :: forall s a. Nat s => Array a -> Maybe (Vec s a)
-fromArray xs = if Array.length xs == toInt (undefined :: s)
+fromArray xs = if Array.length xs == toInt (NProxy :: NProxy s)
                then Just $ Vec xs
                else Nothing
 
 -- | Get the length of a vector as an integer.
 length :: forall s a. Nat s => Vec s a -> Int
-length _ = toInt (undefined :: s)
+length _ = toInt (NProxy :: NProxy s)
 
 -- | Get the length of a vector as a type level number.
-lengthT :: forall s a. Nat s => Vec s a -> s
-lengthT _ = undefined
+lengthT :: forall s a. Vec s a -> NProxy s
+lengthT _ = NProxy
 
 -- | Convert a vector into an array. This simply unwraps the underlying array, so it has no runtime cost.
 toArray :: forall s a. Nat s => Vec s a -> Array a
@@ -116,7 +113,7 @@ toUnfoldable (Vec v) = Array.toUnfoldable v
 -- |     -- value == 3
 -- |     value = index myVector d4
 -- |     -- out of bounds so does not type check
-index :: forall i s a. Nat i => Lt i s => Vec s a -> i -> a
+index :: forall i s a. Nat i => Lt i s => Vec s a -> NProxy i -> a
 index (Vec xs) i = unsafePartial $ Array.unsafeIndex xs $ toInt i
 infixl 8 index as !!
 
@@ -125,21 +122,21 @@ concat :: forall s1 s2 s3 a. Add s1 s2 s3 => Vec s1 a -> Vec s2 a -> Vec s3 a
 concat (Vec xs1) (Vec xs2) = Vec $ Array.concat [xs1, xs2]
 
 -- | Update a vector with a given value inserted at a given index.
-updateAt :: forall i s a. Nat i => Lt i s => i -> a -> Vec s a -> Vec s a
+updateAt :: forall i s a. Nat i => Lt i s => NProxy i -> a -> Vec s a -> Vec s a
 updateAt i v (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.updateAt (toInt i) v xs
 
 -- | Update a vector at a given index using a function.
-modifyAt :: forall i s a. Nat i => Lt i s => i -> (a -> a) -> Vec s a -> Vec s a
+modifyAt :: forall i s a. Nat i => Lt i s => NProxy i -> (a -> a) -> Vec s a -> Vec s a
 modifyAt i f (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.modifyAt (toInt i) f xs
 
 -- | Insert a value at a given index inside a vector, returning a vector
 -- | that is one element larger.
-insertAt :: forall i s1 s2 a. Nat i => Lt i s1 => Succ s1 s2 => i -> a -> Vec s1 a -> Vec s2 a
+insertAt :: forall i s1 s2 a. Nat i => Lt i s1 => Succ s1 s2 => NProxy i -> a -> Vec s1 a -> Vec s2 a
 insertAt i a (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.insertAt (toInt i) a xs
 
 -- | Remove an element at a given index inside a vector, returning a vector
 -- | that is one element smaller.
-deleteAt :: forall i s1 s2 a. Nat i => Lt i s1 => Pred s1 s2 => i -> Vec s1 a -> Vec s2 a
+deleteAt :: forall i s1 s2 a. Nat i => Lt i s1 => Pred s1 s2 => NProxy i -> Vec s1 a -> Vec s2 a
 deleteAt i (Vec xs) = Vec $ unsafePartial $ fromJust $ Array.deleteAt (toInt i) xs
 
 -- | Get the head of a non-empty vector.
@@ -167,27 +164,27 @@ insertBy :: forall s1 s2 a. Succ s1 s2 => (a -> a -> Ordering) -> a -> Vec s1 a 
 insertBy f a (Vec v) = Vec $ Array.insertBy f a v
 
 -- | Get a sub-vector from index `i1` up to but not including index `i2`.
-slice :: forall i1 i2 s1 s2 a. Nat i1 => Nat i2 => LtEq i1 s1 => LtEq i2 s1 => LtEq i1 i2 => Sub i2 i1 s2 => i1 -> i2 -> Vec s1 a -> Vec s2 a
+slice :: forall i1 i2 s1 s2 a. Nat i1 => Nat i2 => LtEq i1 s1 => LtEq i2 s1 => LtEq i1 i2 => Sub i2 i1 s2 => NProxy i1 -> NProxy i2 -> Vec s1 a -> Vec s2 a
 slice i1 i2 (Vec xs) = Vec $ Array.slice (toInt i1) (toInt i2) xs
 
-slice' :: forall i1 i2 s1 s2 a. Nat i1 => Nat i2 => LtEq i1 s1 => LtEq i2 s1 => LtEq i1 i2 => Sub i2 i1 s2 => i1 -> Vec s1 a -> Vec s2 a
-slice' i1 (Vec xs) = Vec $ Array.slice (toInt i1) (toInt (undefined :: i2)) xs
+slice' :: forall i1 i2 s1 s2 a. Nat i1 => Nat i2 => LtEq i1 s1 => LtEq i2 s1 => LtEq i1 i2 => Sub i2 i1 s2 => NProxy i1 -> Vec s1 a -> Vec s2 a
+slice' i1 (Vec xs) = Vec $ Array.slice (toInt i1) (toInt (NProxy :: NProxy i2)) xs
 
 -- | Get the first `c` elements from a vector.
-take :: forall c s a. Nat c => LtEq c s => c -> Vec s a -> Vec c a
+take :: forall c s a. Nat c => LtEq c s => NProxy c -> Vec s a -> Vec c a
 take = const take'
 
 take' :: forall c s a. Nat c => LtEq c s => Vec s a -> Vec c a
-take' (Vec xs) = Vec $ Array.take (toInt (undefined :: c)) xs
+take' (Vec xs) = Vec $ Array.take (toInt (NProxy :: NProxy c)) xs
 
 -- | Drop the first `c` elements from a vector.
-drop :: forall c s1 s2 a. Nat c => LtEq c s1 => Sub s1 c s2 => c -> Vec s1 a -> Vec s2 a
+drop :: forall c s1 s2 a. Nat c => LtEq c s1 => Sub s1 c s2 => NProxy c -> Vec s1 a -> Vec s2 a
 drop c (Vec xs) = Vec $ Array.drop (toInt c) xs
 -- the typchecker doesn't like this:
 --drop = const drop'
 
 drop' :: forall c s1 s2 a. Nat c => LtEq c s1 => Sub s1 c s2 => Vec s1 a -> Vec s2 a
-drop' (Vec xs) = Vec $ Array.drop (toInt (undefined :: c)) xs
+drop' (Vec xs) = Vec $ Array.drop (toInt (NProxy :: NProxy c)) xs
 
 -- | Zip two vectors together into a vector of tuples.
 -- |
