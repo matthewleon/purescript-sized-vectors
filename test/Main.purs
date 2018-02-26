@@ -1,20 +1,26 @@
 module Test.Main where
 
+import Prelude
+
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Random (RANDOM)
 import Data.Maybe (fromJust)
 import Data.Traversable (sequence)
 import Data.Vec (Vec, concat, drop, drop', empty, length, lengthT, replicate, replicate', fromArray, slice, slice', tail, take, take', (+>))
+import Data.Vec.Gen (genVec)
 import Partial.Unsafe (unsafePartial)
-import Prelude (($), Unit, pure, discard)
+import Test.QuickCheck (arbitrary)
+import Test.QuickCheck.Gen (Gen)
 import Test.Unit (suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.Console (TESTOUTPUT)
 import Test.Unit.Main (runTest)
-import Type.Data.Nat (D1, D2, D3, D4, D9, NProxy, d2, d3, d6, toInt)
+import Test.Unit.QuickCheck (quickCheck)
+import Type.Data.Nat (D0, D1, D2, D22, D3, D4, D9, NProxy, d2, d3, d6, toInt)
 
-main :: forall e. Eff (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR | e) Unit
+main :: forall e. Eff (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR, random :: RANDOM | e) Unit
 main = runTest do
   suite "vec" do
     let vec1 = replicate d2 1
@@ -58,3 +64,12 @@ main = runTest do
                      , 2 +> 3 +> empty
                      ]
       equal expected $ sequence vecOfArrays
+    test "gens" do
+       quickCheck
+        $ (\v -> length v == 22) <$> (genVec arbitrary :: Gen (Vec D22 Int))
+       quickCheck
+        $ (\v -> length v == 2) <$> (genVec arbitrary :: Gen (Vec D2 Int))
+       quickCheck
+        $ (\v -> length v == 1) <$> (genVec arbitrary :: Gen (Vec D1 Int))
+       quickCheck
+        $ (\v -> length v == 0) <$> (genVec arbitrary :: Gen (Vec D0 Int))
