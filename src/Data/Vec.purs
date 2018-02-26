@@ -98,7 +98,7 @@ lengthT :: forall s a. Vec s a -> NProxy s
 lengthT _ = NProxy
 
 -- | Convert a vector into an array. This simply unwraps the underlying array, so it has no runtime cost.
-toArray :: forall s a. Nat s => Vec s a -> Array a
+toArray :: forall s a. Vec s a -> Array a
 toArray (Vec xs) = xs
 
 -- | Convert a vector into any `Unfoldable`.
