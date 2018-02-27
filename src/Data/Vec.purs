@@ -59,6 +59,30 @@ import Type.Data.Nat (class Add, class Lt, class LtEq, class Min, class Nat, cla
 -- | `Vec s a` is an array with a fixed size `s` defined at the type level.
 newtype Vec (s :: Nat) a = Vec (Array a)
 
+instance functorVec :: Nat s => Functor (Vec s) where
+  map f (Vec xs) = Vec $ map f xs
+
+instance applyVec :: Nat s => Apply (Vec s) where
+  apply (Vec a) (Vec b) = Vec $ apply a b
+
+instance applicativeVec :: Nat s => Applicative (Vec s) where
+  pure a = replicate' a
+
+instance foldableVec :: Nat s => Foldable (Vec s) where
+  foldMap f (Vec xs) = foldMap f xs
+  foldr f i (Vec xs) = foldr f i xs
+  foldl f i (Vec xs) = foldl f i xs
+
+instance traversableVec :: Nat s => Traversable (Vec s) where
+  traverse f (Vec xs) = Vec <$> traverse f xs
+  sequence (Vec xs) = Vec <$> sequence xs
+
+instance eqVec :: (Nat s, Eq a) => Eq (Vec s a) where
+  eq (Vec v1) (Vec v2) = v1 == v2
+
+instance showVec :: (Nat s, Show a) => Show (Vec s a) where
+  show (Vec v) = show v
+
 -- | An empty vector.
 empty :: forall a. Vec D0 a
 empty = Vec []
@@ -251,27 +275,3 @@ sortBy f (Vec v) = Vec $ Array.sortBy f v
 -- | Reverse a vector.
 reverse :: forall s a. Nat s => Vec s a -> Vec s a
 reverse (Vec v) = Vec $ Array.reverse v
-
-instance functorVec :: Nat s => Functor (Vec s) where
-  map f (Vec xs) = Vec $ map f xs
-
-instance applyVec :: Nat s => Apply (Vec s) where
-  apply (Vec a) (Vec b) = Vec $ apply a b
-
-instance applicativeVec :: Nat s => Applicative (Vec s) where
-  pure a = replicate' a
-
-instance foldableVec :: Nat s => Foldable (Vec s) where
-  foldMap f (Vec xs) = foldMap f xs
-  foldr f i (Vec xs) = foldr f i xs
-  foldl f i (Vec xs) = foldl f i xs
-
-instance traversableVec :: Nat s => Traversable (Vec s) where
-  traverse f (Vec xs) = Vec <$> traverse f xs
-  sequence (Vec xs) = Vec <$> sequence xs
-
-instance eqVec :: (Nat s, Eq a) => Eq (Vec s a) where
-  eq (Vec v1) (Vec v2) = v1 == v2
-
-instance showVec :: (Nat s, Show a) => Show (Vec s a) where
-  show (Vec v) = show v
