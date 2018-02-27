@@ -87,6 +87,10 @@ instance showVec :: (Nat s, Show a) => Show (Vec s a) where
 empty :: forall a. Vec D0 a
 empty = Vec []
 
+-- | Construct a vector containing only a single element.
+singleton :: forall a. a -> Vec D1 a
+singleton x = x +> empty
+
 -- | Prepend a value to the front of a vector, creating a vector of size `Succ s`.
 cons :: forall s s' a. Succ s s' => a -> Vec s a -> Vec s' a
 cons x (Vec xs) = Vec $ Array.cons x xs
@@ -100,10 +104,6 @@ snoc x (Vec xs) = Vec $ Array.snoc xs x
 uncons :: forall s1 s2 a. Pred s1 s2 => Vec s1 a -> { head :: a, tail :: Vec s2 a }
 uncons (Vec v) = case unsafePartial $ fromJust $ Array.uncons v of
   { head: h, tail: t } -> { head: h, tail: Vec t }
-
--- | Construct a vector containing only a single element.
-singleton :: forall a. a -> Vec D1 a
-singleton x = x +> empty
 
 -- | Construct a vector of a given length containing the same element repeated.
 replicate :: forall s a. Nat s => NProxy s -> a -> Vec s a
