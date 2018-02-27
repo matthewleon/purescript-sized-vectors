@@ -14,11 +14,16 @@ module Data.Vec
   , toUnfoldable
   , index, (!!)
   , index'
+  , indexZ
   , concat
   , updateAt
+  , updateAtZ
   , modifyAt
+  , modifyAtZ
   , insertAt
+  , insertAtZ
   , deleteAt
+  , deleteAtZ
   , head
   , last
   , tail

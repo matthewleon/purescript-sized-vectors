@@ -46,3 +46,15 @@ poke (Vec sta) n = unsafePartial STAP.pokeSTArray sta (toInt n)
 
 pokeZ :: forall s a r h. Vec h s a -> Z s -> a -> Eff (st :: ST h | r) Unit
 pokeZ (Vec sta) z = unsafePartial STAP.pokeSTArray sta $ runZ z
+
+modify
+  :: forall i s a r h
+   . Nat i
+  => Lt i s
+  => Vec h s a -> NProxy i -> (a -> a) -> Eff (st :: ST h | r) Unit
+modify (Vec sta) n = void <<< STA.modifySTArray sta (toInt n)
+
+modifyZ
+  :: forall s a r h
+   . Vec h s a -> Z s -> (a -> a) -> Eff (st :: ST h | r) Unit
+modifyZ (Vec sta) z = void <<< STA.modifySTArray sta (runZ z)
