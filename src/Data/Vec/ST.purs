@@ -15,17 +15,20 @@ import Unsafe.Coerce (unsafeCoerce)
 
 newtype Vec h (s :: Nat) a = Vec (STArray h a)
 
-unsafeFreeze :: forall a s r h. Vec h s a -> Eff (st :: ST h | r) (V.Vec s a)
-unsafeFreeze = pure <<< (unsafeCoerce :: Vec h s a -> V.Vec s a)
-
 empty :: forall a r h. Eff (st :: ST h | r) (Vec h D0 a)
 empty = Vec <$> STA.emptySTArray
 
 thaw :: forall a s r h. V.Vec s a -> Eff (st :: ST h | r) (Vec h s a)
 thaw = map Vec <<< STA.thaw <<< V.toArray
 
+unsafeThaw :: forall a s r h. V.Vec s a -> Eff (st :: ST h | r) (Vec h s a)
+unsafeThaw = map Vec <<< STA.unsafeThaw <<< V.toArray
+
 freeze :: forall a s r h. Vec h s a -> Eff (st :: ST h | r) (V.Vec s a)
 freeze (Vec sta) = unsafeCoerce STA.freeze sta
+
+unsafeFreeze :: forall a s r h. Vec h s a -> Eff (st :: ST h | r) (V.Vec s a)
+unsafeFreeze = pure <<< (unsafeCoerce :: Vec h s a -> V.Vec s a)
 
 peek
   :: forall i s a r h

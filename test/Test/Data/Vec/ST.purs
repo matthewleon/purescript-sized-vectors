@@ -20,10 +20,10 @@ stVecTests = suite "stVec" do
   let arbVec = genVec arbitrary :: Gen (Vec D9 Int)
   test "thaw/freeze" $ quickCheck $
     (\v -> v == pureST (ST.freeze =<< ST.thaw v)) <$> arbVec
-  test "thaw/unsafeFreeze" $ quickCheck $
-    (\v -> v == pureST (ST.unsafeFreeze =<< ST.thaw v)) <$> arbVec
+  test "unsafeThaw/unsafeFreeze" $ quickCheck $
+    (\v -> v == pureST (ST.unsafeFreeze =<< ST.unsafeThaw v)) <$> arbVec
   test "peek" $ quickCheck $
-    lift2 (\v z -> indexZ v z == pureST (flip ST.peekZ z =<< ST.thaw v))
+    lift2 (\v z -> indexZ v z == pureST (flip ST.peekZ z =<< ST.unsafeThaw v))
           arbVec
           genZ
   test "poke" $ quickCheck $
